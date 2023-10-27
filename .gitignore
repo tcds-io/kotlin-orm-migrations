@@ -1,0 +1,6 @@
+.idea
+.gradle
+.migrations
+build/
+publish.sh
+gpg-key.pem
