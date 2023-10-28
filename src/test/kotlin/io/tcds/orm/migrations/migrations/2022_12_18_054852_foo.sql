@@ -1,0 +1,4 @@
+CREATE TABLE foo
+(
+    `id` VARCHAR(36) PRIMARY KEY
+);
