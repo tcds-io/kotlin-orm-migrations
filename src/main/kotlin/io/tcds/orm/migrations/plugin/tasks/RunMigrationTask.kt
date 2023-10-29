@@ -8,7 +8,7 @@ import java.sql.DriverManager
 
 abstract class RunMigrationTask : DefaultTask() {
     @TaskAction
-    fun run() = doLast {
+    fun run() {
         doLast {
             val migrationDirectory = project.properties["migrations.directory"]?.toString()
                 ?: throw Exception("Missing `migrations.directory` property")

@@ -1,10 +1,6 @@
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
-val jUnitVersion: String by project
-val mockkVersion: String by project
-val ormVersion: String by project
-
 object Publication {
     const val group = "io.tcds.orm"
     val buildVersion: String = System.getenv("VERSION") ?: "dev"
@@ -28,7 +24,6 @@ object Publication {
 
         const val organization = "tcds-io"
         const val developer = "Thiago Cordeiro"
-        const val email = "thiago@tcds.io"
     }
 }
 
@@ -36,24 +31,12 @@ plugins {
     `kotlin-dsl`
     `maven-publish`
     signing
-
-    id("com.gradle.plugin-publish") version "1.2.1"
     id("io.github.gradle-nexus.publish-plugin") version "1.3.0"
 }
 
-gradlePlugin {
-    // website = Publication.Project.repository
-    // vcsUrl = Publication.Project.repository
-
-    plugins {
-        create("ormMigration") {
-            id = "io.tcds.orm.migrations-plugin"
-            displayName = Publication.Project.name
-            implementationClass = "io.tcds.orm.migrations.OrmMigrationsPlugin"
-            description = project.description
-        }
-    }
-}
+group = Publication.group
+version = Publication.buildVersion
+description = Publication.Project.description
 
 repositories {
     mavenCentral()
@@ -67,8 +50,17 @@ dependencies {
     implementation("com.mysql:mysql-connector-j:8.2.0")
 
     testImplementation("org.xerial:sqlite-jdbc:3.43.0.0")
-    testImplementation("org.junit.jupiter:junit-jupiter:$jUnitVersion")
-    testImplementation("io.mockk:mockk:$mockkVersion")
+    testImplementation("org.junit.jupiter:junit-jupiter:5.9.0")
+    testImplementation("io.mockk:mockk:1.13.2")
+}
+
+dependencies {
+    implementation("io.tcds.orm:orm:0.4.1")
+    implementation("com.mysql:mysql-connector-j:8.2.0")
+
+    testImplementation("org.xerial:sqlite-jdbc:3.43.0.0")
+    testImplementation("org.junit.jupiter:junit-jupiter:5.9.0")
+    testImplementation("io.mockk:mockk:1.13.2")
 }
 
 tasks.withType<KotlinCompile>().configureEach {
@@ -131,7 +123,6 @@ publishing {
                         developer {
                             id.set(Publication.Project.organization)
                             name.set(Publication.Project.developer)
-                            email.set(Publication.Project.email)
                         }
                     }
                     scm {
@@ -150,6 +141,7 @@ signing {
         Publication.Gpg.signingKey,
         Publication.Gpg.signingPassword,
     )
+
     sign(publishing.publications["pluginMaven"])
 }
 

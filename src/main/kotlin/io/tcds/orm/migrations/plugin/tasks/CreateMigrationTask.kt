@@ -7,7 +7,7 @@ import org.gradle.api.tasks.TaskAction
 
 abstract class CreateMigrationTask : DefaultTask() {
     @TaskAction
-    fun run() = doLast {
+    fun run() {
         val migrationDirectory = project.properties["migrations.directory"]?.toString()
             ?: throw Exception("Missing `migrations.directory` property")
 
