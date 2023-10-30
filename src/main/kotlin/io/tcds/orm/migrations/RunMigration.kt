@@ -7,7 +7,7 @@ import io.tcds.orm.param.StringParam
 import java.io.File
 import java.time.LocalDateTime
 
-class RunMigrations(
+class RunMigration(
     private val connection: Connection,
 ) {
     fun run(directory: String) {

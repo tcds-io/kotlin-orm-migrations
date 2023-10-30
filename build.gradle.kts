@@ -1,5 +1,3 @@
-@file:Suppress("UnstableApiUsage")
-
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
@@ -31,16 +29,14 @@ object Publication {
 
 plugins {
     `kotlin-dsl`
-
-    id("com.gradle.plugin-publish") version "1.2.1"
+    `maven-publish`
+    signing
+    id("io.github.gradle-nexus.publish-plugin") version "1.3.0"
 }
-
-group = Publication.group
-version = Publication.buildVersion
-description = Publication.Project.description
 
 repositories {
     mavenCentral()
+    gradlePluginPortal()
 }
 
 dependencies {
@@ -53,21 +49,6 @@ dependencies {
     testImplementation("org.xerial:sqlite-jdbc:3.43.0.0")
     testImplementation("org.junit.jupiter:junit-jupiter:5.9.0")
     testImplementation("io.mockk:mockk:1.13.2")
-}
-
-gradlePlugin {
-    website.set(Publication.Project.repository)
-    vcsUrl.set(Publication.Project.repository)
-
-    plugins {
-        create("tcdsOrmMigrations") {
-            id = "io.tcds.orm.migrations"
-            implementationClass = "io.tcds.orm.migrations.plugin.OrmMigrationsPlugin"
-            displayName = Publication.Project.name
-            description = Publication.Project.description
-            tags.set(listOf("orm", "migrations", "database"))
-        }
-    }
 }
 
 tasks.withType<KotlinCompile>().configureEach {
@@ -86,5 +67,78 @@ tasks.test {
         showCauses = true
         showStackTraces = true
         showStandardStreams = true
+    }
+}
+
+val sourcesJar by tasks.creating(Jar::class) { archiveClassifier.set("sources"); from(sourceSets.main.get().allSource) }
+val javadocJar by tasks.creating(Jar::class) { archiveClassifier.set("javadoc"); from(tasks.javadoc) }
+
+publishing {
+    repositories {
+        maven {
+            name = "SonaType"
+            group = Publication.group
+            version = Publication.buildVersion
+            url = uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
+
+            credentials {
+                username = Publication.Sonatype.username
+                password = Publication.Sonatype.password
+            }
+        }
+    }
+
+    publications {
+        listOf("defaultMavenJava", "pluginMaven").forEach { publication ->
+            create<MavenPublication>(publication) {
+                artifact(sourcesJar)
+                artifact(javadocJar)
+
+                pom {
+                    name.set(Publication.Project.name)
+                    description.set(Publication.Project.description)
+                    url.set(Publication.Project.repository)
+                    packaging = "jar"
+
+                    licenses {
+                        license {
+                            name.set("MIT License")
+                            url.set("${Publication.Project.repository}/blob/main/LICENSE")
+                        }
+                    }
+
+                    developers {
+                        developer {
+                            id.set(Publication.Project.organization)
+                            name.set(Publication.Project.developer)
+                        }
+                    }
+                    scm {
+                        connection.set(Publication.Project.scm)
+                        url.set(Publication.Project.repository)
+                    }
+                }
+            }
+        }
+    }
+}
+
+signing {
+    useInMemoryPgpKeys(
+        Publication.Gpg.signingKeyId,
+        Publication.Gpg.signingKey,
+        Publication.Gpg.signingPassword,
+    )
+    sign(publishing.publications["pluginMaven"])
+}
+
+nexusPublishing {
+    repositories {
+        sonatype {
+            nexusUrl.set(uri("https://s01.oss.sonatype.org/service/local/"))
+            snapshotRepositoryUrl.set(uri("https://s01.oss.sonatype.org/content/repositories/snapshots/"))
+            username.set(Publication.Sonatype.username)
+            password.set(Publication.Sonatype.password)
+        }
     }
 }

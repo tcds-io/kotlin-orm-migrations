@@ -14,7 +14,7 @@ class RunMigrationsTest {
         DriverManager.getConnection("jdbc:sqlite::memory:"),
         null,
     )
-    private val runner = RunMigrations(connection)
+    private val runner = RunMigration(connection)
 
     @Test
     fun `given a directory then create migration table and run migration files`() = freezeClock {
