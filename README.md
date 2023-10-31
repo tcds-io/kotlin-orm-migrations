@@ -15,7 +15,7 @@ migrations.jdbcUrl=${MY_JDBC_WRITE_URL_ENV}
 migrations.directory=my/migration/folder
 
 # multiple migration directory configuration
-migrations.directory[0]=my/first/migration/folder
-migrations.directory[1]=my/second/migration/folder
-migrations.directory[2]=my/third/migration/folder
+migrations.directory[first]=my/first/migration/folder
+migrations.directory[second]=my/second/migration/folder
+migrations.directory[third]=my/third/migration/folder
 ```

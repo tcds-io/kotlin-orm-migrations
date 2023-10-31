@@ -4,23 +4,40 @@ import io.tcds.orm.OrmException
 import io.tcds.orm.connection.Connection
 import io.tcds.orm.param.DateTimeParam
 import io.tcds.orm.param.StringParam
+import org.gradle.api.logging.Logger
 import java.io.File
 import java.time.LocalDateTime
 
 class RunMigration(
     private val connection: Connection,
-) {
-    fun run(directory: String) {
+    private val logger: Logger,
+    properties: Map<String, *>,
+) : BaseProperty(properties) {
+    fun run() {
+        createMigrationTableIfNeeded()
+
+        logger.lifecycle("Running migrations...")
+        val executed = directories.values.map { directory -> migrateDirectory(directory) }
+
+        executed.forEach { files ->
+            files.forEach { file ->
+                logger.lifecycle(" - migrated $file")
+            }
+        }
+        logger.lifecycle("Done.")
+    }
+
+    private fun migrateDirectory(directory: String): List<String> {
         val migrations: List<File> = File(directory)
             .listFiles()
             ?.filter { it.isFile }
-            ?: return
+            ?: return emptyList()
 
-        createMigrationTableIfNeeded()
+        val result = migrations.map { Pair(it.name, migrateFile(it)) }
 
-        migrations.forEach {
-            migrate(it)
-        }
+        return result
+            .filter { it.second }
+            .map { it.first }
     }
 
     private fun createMigrationTableIfNeeded() {
@@ -34,7 +51,7 @@ class RunMigration(
         )
     }
 
-    private fun migrate(file: File): Boolean {
+    private fun migrateFile(file: File): Boolean {
         if (!file.name.endsWith(".sql")) {
             throw OrmException("Invalid migration file: ${file.name}")
         }

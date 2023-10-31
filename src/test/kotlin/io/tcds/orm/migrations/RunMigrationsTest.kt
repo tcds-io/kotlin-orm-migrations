@@ -1,8 +1,11 @@
 package io.tcds.orm.migrations
 
 import fixtures.freezeClock
+import io.mockk.mockk
+import io.mockk.verify
 import io.tcds.orm.OrmException
 import io.tcds.orm.connection.SqLiteConnection
+import org.gradle.api.logging.Logger
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -10,17 +13,23 @@ import java.sql.DriverManager
 import java.time.LocalDateTime
 
 class RunMigrationsTest {
-    private val connection = SqLiteConnection(
-        DriverManager.getConnection("jdbc:sqlite::memory:"),
-        null,
+    private val connection = SqLiteConnection(DriverManager.getConnection("jdbc:sqlite::memory:"), null)
+    private val logger: Logger = mockk(relaxed = true)
+
+    private val runner = RunMigration(
+        connection = connection,
+        logger = logger,
+        properties = mapOf<String, Any>(
+            "migrations.directory[foo]" to "src/test/kotlin/fixtures/migrations/foo",
+            "migrations.directory[bar]" to "src/test/kotlin/fixtures/migrations/bar",
+        ),
     )
-    private val runner = RunMigration(connection)
 
     @Test
     fun `given a directory then create migration table and run migration files`() = freezeClock {
         Assertions.assertEquals(emptyList<String>(), tables())
 
-        runner.run("src/test/kotlin/io/tcds/orm/migrations/migrations")
+        runner.run()
 
         Assertions.assertEquals(listOf("_migrations", "bar", "foo"), tables())
         Assertions.assertEquals(
@@ -30,15 +39,19 @@ class RunMigrationsTest {
             ).toSet(),
             migrations().toSet(),
         )
+        verify(exactly = 1) { logger.lifecycle("Running migrations...") }
+        verify(exactly = 1) { logger.lifecycle(" - migrated 2022_12_18_054852_foo.sql") }
+        verify(exactly = 1) { logger.lifecycle(" - migrated 2022_12_18_064852_bar.sql") }
+        verify(exactly = 1) { logger.lifecycle("Done.") }
     }
 
     @Test
     fun `given a directory when migrations already exist then do not migrate again`() = freezeClock {
         Assertions.assertEquals(emptyList<String>(), tables())
-        runner.run("src/test/kotlin/io/tcds/orm/migrations/migrations")
+        runner.run()
         Assertions.assertEquals(listOf("_migrations", "bar", "foo"), tables())
 
-        runner.run("src/test/kotlin/io/tcds/orm/migrations/migrations")
+        runner.run()
 
         Assertions.assertEquals(listOf("_migrations", "bar", "foo"), tables())
         Assertions.assertEquals(
@@ -48,16 +61,22 @@ class RunMigrationsTest {
             ).toSet(),
             migrations().toSet(),
         )
+        verify(exactly = 2) { logger.lifecycle("Running migrations...") }
+        verify(exactly = 1) { logger.lifecycle(" - migrated 2022_12_18_054852_foo.sql") }
+        verify(exactly = 1) { logger.lifecycle(" - migrated 2022_12_18_064852_bar.sql") }
+        verify(exactly = 2) { logger.lifecycle("Done.") }
     }
 
     @Test
     fun `given a directory when migration file is invalid then throw exception`() = freezeClock {
         Assertions.assertEquals(emptyList<String>(), tables())
-        val directory = "src/test/kotlin/io/tcds/orm/migrations/migrations/yaml"
+        val invalid = RunMigration(
+            connection = connection,
+            logger = logger,
+            properties = mapOf<String, Any>("migrations.directory" to "src/test/kotlin/fixtures/migrations/yaml"),
+        )
 
-        val exception = assertThrows<OrmException> {
-            runner.run(directory)
-        }
+        val exception = assertThrows<OrmException> { invalid.run() }
 
         Assertions.assertEquals("Invalid migration file: 2022_12_18_054852_foo.yaml", exception.message)
     }
@@ -65,8 +84,8 @@ class RunMigrationsTest {
     private fun tables(): List<String> {
         val tables = connection.read(
             """
-                SELECT name FROM sqlite_schema 
-                    WHERE type = 'table' 
+                SELECT name FROM sqlite_schema
+                    WHERE type = 'table'
                     AND name NOT LIKE 'sqlite_%'
                 ORDER BY name;
             """.trimIndent(),
