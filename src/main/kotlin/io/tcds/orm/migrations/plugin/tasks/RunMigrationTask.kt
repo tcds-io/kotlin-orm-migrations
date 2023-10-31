@@ -8,16 +8,20 @@ import java.sql.DriverManager
 
 abstract class RunMigrationTask : DefaultTask() {
     private val jdbcUrl: String
-        get() = project.properties["migrations.jdbcUrl"]
-            ?.toString()
-            ?.substringAfter("\${")
-            ?.substringBefore("}")
-            ?: throw Exception("Missing `migrations.jdbcUrl` property")
+        get() {
+            val property = project.properties["migrations.jdbcUrl"]?.toString()
+                ?: throw Exception("Missing `migrations.jdbcUrl` property")
+
+            val envs = property.split("\$")
+                .filter { it.startsWith("{") }
+                .map { it.substringAfter("{").substringBefore("}") }
+
+            return envs.fold(property) { value, env -> value.replace("\${$env}", System.getenv(env)!!) }
+        }
 
     @TaskAction
     fun run() {
-        val jdbcWriteUrl = System.getenv(jdbcUrl)
-        val jdbcConnection = DriverManager.getConnection(jdbcWriteUrl)
+        val jdbcConnection = DriverManager.getConnection(jdbcUrl)
         val ormConnection = GenericConnection(jdbcConnection, jdbcConnection, null)
 
         RunMigration(

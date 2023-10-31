@@ -20,10 +20,9 @@ class RunMigration(
         val executed = directories.values.map { directory -> migrateDirectory(directory) }
 
         executed.forEach { files ->
-            files.forEach { file ->
-                logger.lifecycle(" - migrated $file")
-            }
+            files.forEach { file -> logger.lifecycle(" - migrated $file") }
         }
+
         logger.lifecycle("Done.")
     }
 
