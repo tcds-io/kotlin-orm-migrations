@@ -6,9 +6,7 @@ import org.gradle.api.tasks.TaskAction
 
 abstract class CreateMigrationTask : DefaultTask() {
     @TaskAction
-    fun run() = MigrationCreator(
-        writer = MigrationCreator.Writer(),
-        properties = project.properties,
-        log = { message -> logger.lifecycle(message) },
-    ).run()
+    fun run() = MigrationCreator(MigrationCreator.Writer(), project.properties) { message ->
+        logger.lifecycle(message)
+    }.run()
 }

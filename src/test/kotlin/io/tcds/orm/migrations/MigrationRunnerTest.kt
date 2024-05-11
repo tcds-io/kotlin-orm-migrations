@@ -17,7 +17,7 @@ class MigrationRunnerTest {
 
     private val runner = MigrationRunner(
         connection = connection,
-        properties = mapOf<String, Any>(
+        directories = mapOf(
             "migrations.directory[foo]" to "src/test/kotlin/fixtures/migrations/foo",
             "migrations.directory[bar]" to "src/test/kotlin/fixtures/migrations/bar",
         ),
@@ -70,7 +70,9 @@ class MigrationRunnerTest {
         Assertions.assertEquals(emptyList<String>(), tables())
         val invalid = MigrationRunner(
             connection = connection,
-            properties = mapOf<String, Any>("migrations.directory" to "src/test/kotlin/fixtures/migrations/yaml"),
+            directories = mapOf(
+                "migrations.directory" to "src/test/kotlin/fixtures/migrations/yaml",
+            ),
         ) { message -> logger.lifecycle(message) }
 
         val exception = assertThrows<OrmException> { invalid.run() }
