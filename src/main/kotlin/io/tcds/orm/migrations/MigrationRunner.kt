@@ -4,26 +4,25 @@ import io.tcds.orm.OrmException
 import io.tcds.orm.connection.Connection
 import io.tcds.orm.param.DateTimeParam
 import io.tcds.orm.param.StringParam
-import org.gradle.api.logging.Logger
 import java.io.File
 import java.time.LocalDateTime
 
-class RunMigration(
+class MigrationRunner(
     private val connection: Connection,
-    private val logger: Logger,
+    private val log: (String) -> Unit,
     properties: Map<String, *>,
 ) : BaseProperty(properties) {
     fun run() {
         createMigrationTableIfNeeded()
 
-        logger.lifecycle("Running migrations...")
+        log("Running migrations...")
         val executed = directories.values.map { directory -> migrateDirectory(directory) }
 
         executed.forEach { files ->
-            files.forEach { file -> logger.lifecycle(" - migrated $file") }
+            files.forEach { file -> log(" - migrated $file") }
         }
 
-        logger.lifecycle("Done.")
+        log("Done.")
     }
 
     private fun migrateDirectory(directory: String): List<String> {

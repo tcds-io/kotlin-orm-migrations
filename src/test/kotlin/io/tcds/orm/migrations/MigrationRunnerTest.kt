@@ -12,13 +12,13 @@ import org.junit.jupiter.api.assertThrows
 import java.sql.DriverManager
 import java.time.LocalDateTime
 
-class RunMigrationsTest {
+class MigrationRunnerTest {
     private val connection = SqLiteConnection(DriverManager.getConnection("jdbc:sqlite::memory:"), null)
     private val logger: Logger = mockk(relaxed = true)
 
-    private val runner = RunMigration(
+    private val runner = MigrationRunner(
         connection = connection,
-        logger = logger,
+        log = { message -> logger.lifecycle(message) },
         properties = mapOf<String, Any>(
             "migrations.directory[foo]" to "src/test/kotlin/fixtures/migrations/foo",
             "migrations.directory[bar]" to "src/test/kotlin/fixtures/migrations/bar",
@@ -70,9 +70,9 @@ class RunMigrationsTest {
     @Test
     fun `given a directory when migration file is invalid then throw exception`() = freezeClock {
         Assertions.assertEquals(emptyList<String>(), tables())
-        val invalid = RunMigration(
+        val invalid = MigrationRunner(
             connection = connection,
-            logger = logger,
+            log = { message -> logger.lifecycle(message) },
             properties = mapOf<String, Any>("migrations.directory" to "src/test/kotlin/fixtures/migrations/yaml"),
         )
 

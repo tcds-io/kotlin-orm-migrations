@@ -8,15 +8,16 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 
-class CreateMigrationTest {
-    private val writer: CreateMigration.Writer = mockk(relaxed = true)
+class MigrationCreatorTest {
+    private val writer: MigrationCreator.Writer = mockk(relaxed = true)
     private val logger: Logger = mockk(relaxed = true)
+    private val log: (String) -> Unit = { message -> logger.lifecycle(message) }
 
     @Test
     fun `given the properties when directory is missing then throw an exception`() = freezeClock {
         val props = emptyMap<String, Any>()
 
-        val exception = assertThrows<Exception> { CreateMigration(writer, logger, props) }
+        val exception = assertThrows<Exception> { MigrationCreator(writer, log, props) }
 
         assertEquals("Missing `migrations.directory` property", exception.message)
     }
@@ -24,7 +25,7 @@ class CreateMigrationTest {
     @Test
     fun `given the properties when migration is missing then throw an exception`() = freezeClock {
         val props = mapOf<String, Any>("migrations.directory" to "migration/folder")
-        val creator = CreateMigration(writer, logger, props)
+        val creator = MigrationCreator(writer, log, props)
 
         val exception = assertThrows<Exception> { creator.run() }
 
@@ -37,7 +38,7 @@ class CreateMigrationTest {
             "migrations.directory" to "migration/folder",
             "migration" to "FooBar",
         )
-        val creator = CreateMigration(writer, logger, props)
+        val creator = MigrationCreator(writer, log, props)
 
         creator.run()
 
@@ -57,7 +58,7 @@ class CreateMigrationTest {
             "migrations.directory[sales]" to "sales/migration/folder",
             "migration" to "FooBar",
         )
-        val creator = CreateMigration(writer, logger, props)
+        val creator = MigrationCreator(writer, log, props)
 
         val exception = assertThrows<Exception> { creator.run() }
 
@@ -72,7 +73,7 @@ class CreateMigrationTest {
             "migration" to "FooBar",
             "dir" to "sales",
         )
-        val creator = CreateMigration(writer, logger, props)
+        val creator = MigrationCreator(writer, log, props)
 
         creator.run()
 

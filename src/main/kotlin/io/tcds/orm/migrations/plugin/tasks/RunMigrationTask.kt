@@ -1,7 +1,7 @@
 package io.tcds.orm.migrations.plugin.tasks
 
 import io.tcds.orm.connection.GenericConnection
-import io.tcds.orm.migrations.RunMigration
+import io.tcds.orm.migrations.MigrationRunner
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
 import java.sql.DriverManager
@@ -24,9 +24,9 @@ abstract class RunMigrationTask : DefaultTask() {
         val jdbcConnection = DriverManager.getConnection(jdbcUrl)
         val ormConnection = GenericConnection(jdbcConnection, jdbcConnection, null)
 
-        RunMigration(
+        MigrationRunner(
             connection = ormConnection,
-            logger = logger,
+            log = { message -> logger.lifecycle(message) },
             properties = project.properties,
         ).run()
     }
