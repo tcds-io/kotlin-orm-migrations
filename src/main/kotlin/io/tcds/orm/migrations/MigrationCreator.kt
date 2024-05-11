@@ -8,7 +8,9 @@ class MigrationCreator(
     private val writer: Writer,
     private val properties: Map<String, *>,
     private val log: (String) -> Unit,
-) : BaseProperty(properties) {
+) {
+    private val directories: Map<String, String> = properties.directories()
+
     class Writer {
         fun write(directory: String, name: String, content: String) {
             val dir = File(directory)
@@ -25,15 +27,15 @@ class MigrationCreator(
             throw Exception("Missing migration name. Please run the command with `-P migration={name}` argument")
         }
 
-        val dirProp = properties["dir"]
+        val module = properties["module"]
             ?.toString()
             ?.let { "migrations.directory[$it]" }
             ?: "migrations.directory"
 
-        val directory = directories[dirProp] ?: run {
+        val directory = directories[module] ?: run {
             val names = directories.keys.joinToString(",") { it.substringAfter("[").substringBefore("]") }
 
-            throw Exception("Missing migration directory. Please run the command with `-P dir={dir}` with one of `$names`")
+            throw Exception("Missing migration directory. Please run the command with `-P module={module}` with one of `$names`")
         }
 
         val file = this.create(directory, name)

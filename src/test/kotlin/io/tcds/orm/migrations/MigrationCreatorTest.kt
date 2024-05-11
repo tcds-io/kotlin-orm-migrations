@@ -1,8 +1,7 @@
 package io.tcds.orm.migrations
 
 import fixtures.freezeClock
-import io.mockk.mockk
-import io.mockk.verify
+import io.mockk.*
 import org.gradle.api.logging.Logger
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -62,7 +61,10 @@ class MigrationCreatorTest {
 
         val exception = assertThrows<Exception> { creator.run() }
 
-        assertEquals("Missing migration directory. Please run the command with `-P dir={dir}` with one of `user,sales`", exception.message)
+        assertEquals(
+            "Missing migration directory. Please run the command with `-P module={module}` with one of `user,sales`",
+            exception.message,
+        )
     }
 
     @Test
@@ -71,7 +73,7 @@ class MigrationCreatorTest {
             "migrations.directory[user]" to "user/migration/folder",
             "migrations.directory[sales]" to "sales/migration/folder",
             "migration" to "FooBar",
-            "dir" to "sales",
+            "module" to "sales",
         )
         val creator = MigrationCreator(writer, props, log)
 

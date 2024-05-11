@@ -2,6 +2,7 @@ package io.tcds.orm.migrations.plugin.tasks
 
 import io.tcds.orm.connection.GenericConnection
 import io.tcds.orm.migrations.MigrationRunner
+import io.tcds.orm.migrations.directories
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
 import java.sql.DriverManager
@@ -26,7 +27,7 @@ abstract class RunMigrationTask : DefaultTask() {
 
         MigrationRunner(
             connection = ormConnection,
-            properties = project.properties,
+            directories = project.properties.directories(),
             log = { message -> logger.lifecycle(message) },
         ).run()
     }
