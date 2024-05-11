@@ -26,8 +26,8 @@ abstract class RunMigrationTask : DefaultTask() {
 
         MigrationRunner(
             connection = ormConnection,
-            log = { message -> logger.lifecycle(message) },
             properties = project.properties,
+            log = { message -> logger.lifecycle(message) },
         ).run()
     }
 }

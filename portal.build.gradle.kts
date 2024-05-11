@@ -1,4 +1,5 @@
 // ./gradlew build --build-file=portal.build.gradle.kts
+// https://docs.gradle.org/current/userguide/publishing_gradle_plugins.html
 @file:Suppress("UnstableApiUsage")
 
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
