@@ -8,7 +8,7 @@ abstract class CreateMigrationTask : DefaultTask() {
     @TaskAction
     fun run() = MigrationCreator(
         writer = MigrationCreator.Writer(),
-        log = { message -> logger.lifecycle(message) },
         properties = project.properties,
+        log = { message -> logger.lifecycle(message) },
     ).run()
 }

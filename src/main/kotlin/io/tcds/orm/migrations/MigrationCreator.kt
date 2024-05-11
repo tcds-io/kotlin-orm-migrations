@@ -6,8 +6,8 @@ import java.time.format.DateTimeFormatter
 
 class MigrationCreator(
     private val writer: Writer,
-    private val log: (String) -> Unit,
     private val properties: Map<String, *>,
+    private val log: (String) -> Unit,
 ) : BaseProperty(properties) {
     class Writer {
         fun write(directory: String, name: String, content: String) {

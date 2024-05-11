@@ -17,7 +17,7 @@ class MigrationCreatorTest {
     fun `given the properties when directory is missing then throw an exception`() = freezeClock {
         val props = emptyMap<String, Any>()
 
-        val exception = assertThrows<Exception> { MigrationCreator(writer, log, props) }
+        val exception = assertThrows<Exception> { MigrationCreator(writer, props, log) }
 
         assertEquals("Missing `migrations.directory` property", exception.message)
     }
@@ -25,7 +25,7 @@ class MigrationCreatorTest {
     @Test
     fun `given the properties when migration is missing then throw an exception`() = freezeClock {
         val props = mapOf<String, Any>("migrations.directory" to "migration/folder")
-        val creator = MigrationCreator(writer, log, props)
+        val creator = MigrationCreator(writer, props, log)
 
         val exception = assertThrows<Exception> { creator.run() }
 
@@ -38,7 +38,7 @@ class MigrationCreatorTest {
             "migrations.directory" to "migration/folder",
             "migration" to "FooBar",
         )
-        val creator = MigrationCreator(writer, log, props)
+        val creator = MigrationCreator(writer, props, log)
 
         creator.run()
 
@@ -58,7 +58,7 @@ class MigrationCreatorTest {
             "migrations.directory[sales]" to "sales/migration/folder",
             "migration" to "FooBar",
         )
-        val creator = MigrationCreator(writer, log, props)
+        val creator = MigrationCreator(writer, props, log)
 
         val exception = assertThrows<Exception> { creator.run() }
 
@@ -73,7 +73,7 @@ class MigrationCreatorTest {
             "migration" to "FooBar",
             "dir" to "sales",
         )
-        val creator = MigrationCreator(writer, log, props)
+        val creator = MigrationCreator(writer, props, log)
 
         creator.run()
 

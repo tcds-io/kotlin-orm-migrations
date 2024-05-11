@@ -9,8 +9,8 @@ import java.time.LocalDateTime
 
 class MigrationRunner(
     private val connection: Connection,
-    private val log: (String) -> Unit,
     properties: Map<String, *>,
+    private val log: (String) -> Unit,
 ) : BaseProperty(properties) {
     fun run() {
         createMigrationTableIfNeeded()

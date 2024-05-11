@@ -1,8 +1,7 @@
 package io.tcds.orm.migrations
 
 import fixtures.freezeClock
-import io.mockk.mockk
-import io.mockk.verify
+import io.mockk.*
 import io.tcds.orm.OrmException
 import io.tcds.orm.connection.SqLiteConnection
 import org.gradle.api.logging.Logger
@@ -18,12 +17,11 @@ class MigrationRunnerTest {
 
     private val runner = MigrationRunner(
         connection = connection,
-        log = { message -> logger.lifecycle(message) },
         properties = mapOf<String, Any>(
             "migrations.directory[foo]" to "src/test/kotlin/fixtures/migrations/foo",
             "migrations.directory[bar]" to "src/test/kotlin/fixtures/migrations/bar",
         ),
-    )
+    ) { message -> logger.lifecycle(message) }
 
     @Test
     fun `given a directory then create migration table and run migration files`() = freezeClock {
@@ -72,9 +70,8 @@ class MigrationRunnerTest {
         Assertions.assertEquals(emptyList<String>(), tables())
         val invalid = MigrationRunner(
             connection = connection,
-            log = { message -> logger.lifecycle(message) },
             properties = mapOf<String, Any>("migrations.directory" to "src/test/kotlin/fixtures/migrations/yaml"),
-        )
+        ) { message -> logger.lifecycle(message) }
 
         val exception = assertThrows<OrmException> { invalid.run() }
 
