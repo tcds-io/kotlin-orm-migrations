@@ -1,14 +1,14 @@
 package io.tcds.orm.migrations.plugin.tasks
 
-import io.tcds.orm.migrations.CreateMigration
+import io.tcds.orm.migrations.MigrationCreator
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
 
 abstract class CreateMigrationTask : DefaultTask() {
     @TaskAction
-    fun run() = CreateMigration(
-        writer = CreateMigration.Writer(),
-        logger = logger,
+    fun run() = MigrationCreator(
+        writer = MigrationCreator.Writer(),
+        log = { message -> logger.lifecycle(message) },
         properties = project.properties,
     ).run()
 }

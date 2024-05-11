@@ -2,7 +2,7 @@ import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 object Publication {
-    const val group = "io.tcds.orm"
+    const val GROUP = "io.tcds.orm"
     val buildVersion: String = System.getenv("VERSION") ?: "dev"
 
     object Sonatype {
@@ -17,13 +17,13 @@ object Publication {
     }
 
     object Project {
-        const val name = "Kotlin Simple ORM Migration Tools"
-        const val description = "Migration tool for Kotlin Simple ORM"
-        const val repository = "https://github.com/tcds-io/kotlin-orm-migrations"
-        const val scm = "scm:git:git://github.com:tcds-io/kotlin-orm-migrations.git"
+        const val NAME = "Kotlin Simple ORM Migration Tools"
+        const val DESCRIPTION = "Migration tool for Kotlin Simple ORM"
+        const val REPOSITORY = "https://github.com/tcds-io/kotlin-orm-migrations"
+        const val SCM = "scm:git:git://github.com:tcds-io/kotlin-orm-migrations.git"
 
-        const val organization = "tcds-io"
-        const val developer = "Thiago Cordeiro"
+        const val ORGANIZATION = "tcds-io"
+        const val DEVELOPER = "Thiago Cordeiro"
     }
 }
 
@@ -77,7 +77,7 @@ publishing {
     repositories {
         maven {
             name = "SonaType"
-            group = Publication.group
+            group = Publication.GROUP
             version = Publication.buildVersion
             url = uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
 
@@ -95,27 +95,27 @@ publishing {
                 artifact(javadocJar)
 
                 pom {
-                    name.set(Publication.Project.name)
-                    description.set(Publication.Project.description)
-                    url.set(Publication.Project.repository)
+                    name.set(Publication.Project.NAME)
+                    description.set(Publication.Project.DESCRIPTION)
+                    url.set(Publication.Project.REPOSITORY)
                     packaging = "jar"
 
                     licenses {
                         license {
                             name.set("MIT License")
-                            url.set("${Publication.Project.repository}/blob/main/LICENSE")
+                            url.set("${Publication.Project.REPOSITORY}/blob/main/LICENSE")
                         }
                     }
 
                     developers {
                         developer {
-                            id.set(Publication.Project.organization)
-                            name.set(Publication.Project.developer)
+                            id.set(Publication.Project.ORGANIZATION)
+                            name.set(Publication.Project.DEVELOPER)
                         }
                     }
                     scm {
-                        connection.set(Publication.Project.scm)
-                        url.set(Publication.Project.repository)
+                        connection.set(Publication.Project.SCM)
+                        url.set(Publication.Project.REPOSITORY)
                     }
                 }
             }

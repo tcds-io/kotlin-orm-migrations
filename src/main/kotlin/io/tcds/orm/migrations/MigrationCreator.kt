@@ -1,13 +1,12 @@
 package io.tcds.orm.migrations
 
-import org.gradle.api.logging.Logger
 import java.io.File
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-class CreateMigration(
+class MigrationCreator(
     private val writer: Writer,
-    private val logger: Logger,
+    private val log: (String) -> Unit,
     private val properties: Map<String, *>,
 ) : BaseProperty(properties) {
     class Writer {
@@ -38,7 +37,7 @@ class CreateMigration(
         }
 
         val file = this.create(directory, name)
-        logger.lifecycle("Migration `$file` created.")
+        log("Migration `$file` created.")
     }
 
     private fun create(directory: String, name: String): String {
