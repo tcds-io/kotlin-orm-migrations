@@ -5,6 +5,7 @@ import io.mockk.*
 import io.tcds.orm.OrmException
 import io.tcds.orm.connection.ResilientConnection
 import io.tcds.orm.connection.SqLiteConnection
+import io.tcds.orm.extension.toLocalDateTime
 import org.gradle.api.logging.Logger
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
@@ -34,8 +35,8 @@ class MigrationRunnerTest {
         Assertions.assertEquals(listOf("_migrations", "bar", "foo"), tables())
         Assertions.assertEquals(
             listOf(
-                mapOf("name" to "2022_12_18_054852_foo", "executed_at" to "2022-12-18T04:48:52Z"),
-                mapOf("name" to "2022_12_18_064852_bar", "executed_at" to "2022-12-18T04:48:52Z"),
+                mapOf("name" to "2022_12_18_054852_foo", "executed_at" to "2022-12-18T05:48:52"),
+                mapOf("name" to "2022_12_18_064852_bar", "executed_at" to "2022-12-18T05:48:52"),
             ).toSet(),
             migrations().toSet(),
         )
@@ -56,8 +57,8 @@ class MigrationRunnerTest {
         Assertions.assertEquals(listOf("_migrations", "bar", "foo"), tables())
         Assertions.assertEquals(
             listOf(
-                mapOf("name" to "2022_12_18_054852_foo", "executed_at" to "2022-12-18T04:48:52Z"),
-                mapOf("name" to "2022_12_18_064852_bar", "executed_at" to "2022-12-18T04:48:52Z"),
+                mapOf("name" to "2022_12_18_054852_foo", "executed_at" to "2022-12-18T05:48:52"),
+                mapOf("name" to "2022_12_18_064852_bar", "executed_at" to "2022-12-18T05:48:52"),
             ).toSet(),
             migrations().toSet(),
         )
@@ -100,7 +101,7 @@ class MigrationRunnerTest {
 
         return migrations.map {
             val name = it.value("name", String::class.java)!!
-            val datetime = it.value("executed_at", Instant::class.java)!!
+            val datetime = it.value("executed_at", Instant::class.java)!!.toLocalDateTime()
 
             mapOf("name" to name, "executed_at" to datetime.toString())
         }.toList()
