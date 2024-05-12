@@ -3,16 +3,18 @@ package io.tcds.orm.migrations
 import fixtures.freezeClock
 import io.mockk.*
 import io.tcds.orm.OrmException
+import io.tcds.orm.connection.ResilientConnection
 import io.tcds.orm.connection.SqLiteConnection
 import org.gradle.api.logging.Logger
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.sql.DriverManager
-import java.time.LocalDateTime
+import java.time.Instant
 
 class MigrationRunnerTest {
-    private val connection = SqLiteConnection(DriverManager.getConnection("jdbc:sqlite::memory:"), null)
+    private val factory = ResilientConnection.reconnectable { DriverManager.getConnection("jdbc:sqlite::memory:") }
+    private val connection = SqLiteConnection(factory, null)
     private val logger: Logger = mockk(relaxed = true)
 
     private val runner = MigrationRunner(
@@ -32,8 +34,8 @@ class MigrationRunnerTest {
         Assertions.assertEquals(listOf("_migrations", "bar", "foo"), tables())
         Assertions.assertEquals(
             listOf(
-                mapOf("name" to "2022_12_18_054852_foo", "executed_at" to "2022-12-18T05:48:52"),
-                mapOf("name" to "2022_12_18_064852_bar", "executed_at" to "2022-12-18T05:48:52"),
+                mapOf("name" to "2022_12_18_054852_foo", "executed_at" to "2022-12-18T04:48:52Z"),
+                mapOf("name" to "2022_12_18_064852_bar", "executed_at" to "2022-12-18T04:48:52Z"),
             ).toSet(),
             migrations().toSet(),
         )
@@ -54,8 +56,8 @@ class MigrationRunnerTest {
         Assertions.assertEquals(listOf("_migrations", "bar", "foo"), tables())
         Assertions.assertEquals(
             listOf(
-                mapOf("name" to "2022_12_18_054852_foo", "executed_at" to "2022-12-18T05:48:52"),
-                mapOf("name" to "2022_12_18_064852_bar", "executed_at" to "2022-12-18T05:48:52"),
+                mapOf("name" to "2022_12_18_054852_foo", "executed_at" to "2022-12-18T04:48:52Z"),
+                mapOf("name" to "2022_12_18_064852_bar", "executed_at" to "2022-12-18T04:48:52Z"),
             ).toSet(),
             migrations().toSet(),
         )
@@ -98,7 +100,7 @@ class MigrationRunnerTest {
 
         return migrations.map {
             val name = it.value("name", String::class.java)!!
-            val datetime = it.value("executed_at", LocalDateTime::class.java)!!
+            val datetime = it.value("executed_at", Instant::class.java)!!
 
             mapOf("name" to name, "executed_at" to datetime.toString())
         }.toList()
