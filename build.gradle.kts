@@ -1,6 +1,9 @@
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
+val ormVersion: String by project
+val mysqlConnectorVersion: String by project
+
 object Publication {
     const val GROUP = "io.tcds.orm"
     val buildVersion: String = System.getenv("VERSION") ?: "dev"
@@ -43,8 +46,8 @@ dependencies {
     gradleApi()
     api(kotlin("stdlib"))
 
-    implementation("io.tcds.orm:orm:0.4.1")
-    implementation("com.mysql:mysql-connector-j:8.2.0")
+    implementation("io.tcds.orm:orm:$ormVersion")
+    implementation("com.mysql:mysql-connector-j:$mysqlConnectorVersion")
 
     testImplementation("org.xerial:sqlite-jdbc:3.43.0.0")
     testImplementation("org.junit.jupiter:junit-jupiter:5.9.0")

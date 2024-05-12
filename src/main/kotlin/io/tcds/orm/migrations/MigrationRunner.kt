@@ -68,8 +68,8 @@ class MigrationRunner(
         }
 
         connection.transaction {
-            write(file.readText())
-            write(
+            connection.write(file.readText())
+            connection.write(
                 "INSERT INTO _migrations VALUES (?, ?)",
                 listOf(
                     StringParam("name", name),
