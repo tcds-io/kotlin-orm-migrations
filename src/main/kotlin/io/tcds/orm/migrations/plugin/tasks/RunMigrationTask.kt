@@ -26,10 +26,9 @@ abstract class RunMigrationTask : DefaultTask() {
         val jdbcConnection = ResilientConnection.reconnectable { DriverManager.getConnection(jdbcUrl) }
         val ormConnection = GenericConnection(jdbcConnection, jdbcConnection, null)
 
-        MigrationRunner(
-            connection = ormConnection,
-            directories = project.properties.directories(),
-            log = { message -> logger.lifecycle(message) },
-        ).run()
+        MigrationRunner(connection = ormConnection)
+            .run(project.properties.directories()) { message ->
+                logger.lifecycle(message)
+            }
     }
 }
