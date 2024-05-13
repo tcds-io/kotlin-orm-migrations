@@ -7,12 +7,8 @@ import io.tcds.orm.param.StringParam
 import java.io.File
 import java.time.LocalDateTime
 
-class MigrationRunner(
-    private val connection: Connection,
-    private val directories: Map<String, String>,
-    private val log: (String) -> Unit,
-) {
-    fun run() {
+class MigrationRunner(private val connection: Connection) {
+    fun run(directories: Map<String, String>, log: (String) -> Unit) {
         createMigrationTableIfNeeded()
 
         log("Running migrations...")

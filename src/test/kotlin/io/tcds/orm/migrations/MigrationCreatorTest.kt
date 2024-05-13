@@ -16,7 +16,7 @@ class MigrationCreatorTest {
     fun `given the properties when directory is missing then throw an exception`() = freezeClock {
         val props = emptyMap<String, Any>()
 
-        val exception = assertThrows<Exception> { MigrationCreator(writer, props, log) }
+        val exception = assertThrows<Exception> { MigrationCreator(writer).run(props, log) }
 
         assertEquals("Missing `migrations.directory` property", exception.message)
     }
@@ -24,9 +24,9 @@ class MigrationCreatorTest {
     @Test
     fun `given the properties when migration is missing then throw an exception`() = freezeClock {
         val props = mapOf<String, Any>("migrations.directory" to "migration/folder")
-        val creator = MigrationCreator(writer, props, log)
+        val creator = MigrationCreator(writer)
 
-        val exception = assertThrows<Exception> { creator.run() }
+        val exception = assertThrows<Exception> { creator.run(props, log) }
 
         assertEquals("Missing migration name. Please run the command with `-P migration={name}` argument", exception.message)
     }
@@ -37,9 +37,9 @@ class MigrationCreatorTest {
             "migrations.directory" to "migration/folder",
             "migration" to "FooBar",
         )
-        val creator = MigrationCreator(writer, props, log)
+        val creator = MigrationCreator(writer)
 
-        creator.run()
+        creator.run(props, log)
 
         verify(exactly = 1) {
             writer.write(
@@ -57,9 +57,9 @@ class MigrationCreatorTest {
             "migrations.directory[sales]" to "sales/migration/folder",
             "migration" to "FooBar",
         )
-        val creator = MigrationCreator(writer, props, log)
+        val creator = MigrationCreator(writer)
 
-        val exception = assertThrows<Exception> { creator.run() }
+        val exception = assertThrows<Exception> { creator.run(props, log) }
 
         assertEquals(
             "Missing migration directory. Please run the command with `-P module={module}` with one of `user,sales`",
@@ -75,9 +75,9 @@ class MigrationCreatorTest {
             "migration" to "FooBar",
             "module" to "sales",
         )
-        val creator = MigrationCreator(writer, props, log)
+        val creator = MigrationCreator(writer)
 
-        creator.run()
+        creator.run(props, log)
 
         verify(exactly = 1) {
             writer.write(

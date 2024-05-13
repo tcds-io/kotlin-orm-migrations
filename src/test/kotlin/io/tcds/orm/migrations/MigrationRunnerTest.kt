@@ -18,19 +18,18 @@ class MigrationRunnerTest {
     private val connection = SqLiteConnection(factory, null)
     private val logger: Logger = mockk(relaxed = true)
 
-    private val runner = MigrationRunner(
-        connection = connection,
-        directories = mapOf(
-            "migrations.directory[foo]" to "src/test/kotlin/fixtures/migrations/foo",
-            "migrations.directory[bar]" to "src/test/kotlin/fixtures/migrations/bar",
-        ),
-    ) { message -> logger.lifecycle(message) }
+    private val runner = MigrationRunner(connection = connection)
+    private val log: (String) -> Unit = { message -> logger.lifecycle(message) }
+    private val directories = mapOf(
+        "migrations.directory[foo]" to "src/test/kotlin/fixtures/migrations/foo",
+        "migrations.directory[bar]" to "src/test/kotlin/fixtures/migrations/bar",
+    )
 
     @Test
     fun `given a directory then create migration table and run migration files`() = freezeClock {
         Assertions.assertEquals(emptyList<String>(), tables())
 
-        runner.run()
+        runner.run(directories, log)
 
         Assertions.assertEquals(listOf("_migrations", "bar", "foo"), tables())
         Assertions.assertEquals(
@@ -49,10 +48,10 @@ class MigrationRunnerTest {
     @Test
     fun `given a directory when migrations already exist then do not migrate again`() = freezeClock {
         Assertions.assertEquals(emptyList<String>(), tables())
-        runner.run()
+        runner.run(directories, log)
         Assertions.assertEquals(listOf("_migrations", "bar", "foo"), tables())
 
-        runner.run()
+        runner.run(directories, log)
 
         Assertions.assertEquals(listOf("_migrations", "bar", "foo"), tables())
         Assertions.assertEquals(
@@ -71,14 +70,9 @@ class MigrationRunnerTest {
     @Test
     fun `given a directory when migration file is invalid then throw exception`() = freezeClock {
         Assertions.assertEquals(emptyList<String>(), tables())
-        val invalid = MigrationRunner(
-            connection = connection,
-            directories = mapOf(
-                "migrations.directory" to "src/test/kotlin/fixtures/migrations/yaml",
-            ),
-        ) { message -> logger.lifecycle(message) }
+        val invalid = mapOf("migrations.directory" to "src/test/kotlin/fixtures/migrations/yaml")
 
-        val exception = assertThrows<OrmException> { invalid.run() }
+        val exception = assertThrows<OrmException> { runner.run(invalid, log) }
 
         Assertions.assertEquals("Invalid migration file: 2022_12_18_054852_foo.yaml", exception.message)
     }

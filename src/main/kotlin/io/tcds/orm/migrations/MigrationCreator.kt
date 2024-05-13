@@ -4,13 +4,7 @@ import java.io.File
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-class MigrationCreator(
-    private val writer: Writer,
-    private val properties: Map<String, *>,
-    private val log: (String) -> Unit,
-) {
-    private val directories: Map<String, String> = properties.directories()
-
+class MigrationCreator(private val writer: Writer) {
     class Writer {
         fun write(directory: String, name: String, content: String) {
             val dir = File(directory)
@@ -22,7 +16,9 @@ class MigrationCreator(
         }
     }
 
-    fun run() {
+    fun run(properties: Map<String, *>, log: (String) -> Unit) {
+        val directories: Map<String, String> = properties.directories()
+
         val name = properties["migration"]?.toString() ?: run {
             throw Exception("Missing migration name. Please run the command with `-P migration={name}` argument")
         }
