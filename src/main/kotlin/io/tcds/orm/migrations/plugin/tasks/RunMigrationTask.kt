@@ -3,7 +3,7 @@ package io.tcds.orm.migrations.plugin.tasks
 import io.tcds.orm.connection.GenericConnection
 import io.tcds.orm.connection.ResilientConnection
 import io.tcds.orm.migrations.MigrationRunner
-import io.tcds.orm.migrations.directories
+import io.tcds.orm.migrations.modules
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
 import java.sql.DriverManager
@@ -25,10 +25,10 @@ abstract class RunMigrationTask : DefaultTask() {
     fun run() {
         val jdbcConnection = ResilientConnection.reconnectable { DriverManager.getConnection(jdbcUrl) }
         val ormConnection = GenericConnection(jdbcConnection, jdbcConnection, null)
+        val modules = project.properties.modules()
 
-        MigrationRunner(connection = ormConnection)
-            .run(project.properties.directories()) { message ->
-                logger.lifecycle(message)
-            }
+        MigrationRunner(connection = ormConnection).run(modules) { message ->
+            logger.lifecycle(message)
+        }
     }
 }

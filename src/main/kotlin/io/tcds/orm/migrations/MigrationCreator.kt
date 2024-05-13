@@ -17,7 +17,7 @@ class MigrationCreator(private val writer: Writer) {
     }
 
     fun run(properties: Map<String, *>, log: (String) -> Unit) {
-        val directories: Map<String, String> = properties.directories()
+        val directories: Map<String, String> = properties.modules()
 
         val name = properties["migration"]?.toString() ?: run {
             throw Exception("Missing migration name. Please run the command with `-P migration={name}` argument")

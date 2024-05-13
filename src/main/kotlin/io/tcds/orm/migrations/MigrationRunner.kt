@@ -8,30 +8,27 @@ import java.io.File
 import java.time.LocalDateTime
 
 class MigrationRunner(private val connection: Connection) {
-    fun run(directories: Map<String, String>, log: (String) -> Unit) {
+    fun run(modules: Map<String, String>, log: (String) -> Unit) {
+        val migrations = mutableListOf<Migration>()
+
+        modules.map { module ->
+            File(module.value)
+                .listFiles()
+                ?.filter { it.isFile }
+                ?.forEach { migrations.add(Migration(it.name, it.readText())) }
+        }
+
+        run(migrations, log)
+    }
+
+    fun run(migrations: List<Migration>, log: (String) -> Unit) {
         createMigrationTableIfNeeded()
 
         log("Running migrations...")
-        val executed = directories.values.map { directory -> migrateDirectory(directory) }
-
-        executed.forEach { files ->
-            files.forEach { file -> log(" - migrated $file") }
-        }
+        val executed = migrations.mapNotNull { migration -> migrate(migration) }
+        executed.forEach { file -> log(" - migrated ${file.name}") }
 
         log("Done.")
-    }
-
-    private fun migrateDirectory(directory: String): List<String> {
-        val migrations: List<File> = File(directory)
-            .listFiles()
-            ?.filter { it.isFile }
-            ?: return emptyList()
-
-        val result = migrations.map { Pair(it.name, migrateFile(it)) }
-
-        return result
-            .filter { it.second }
-            .map { it.first }
     }
 
     private fun createMigrationTableIfNeeded() {
@@ -45,12 +42,12 @@ class MigrationRunner(private val connection: Connection) {
         )
     }
 
-    private fun migrateFile(file: File): Boolean {
-        if (!file.name.endsWith(".sql")) {
-            throw OrmException("Invalid migration file: ${file.name}")
+    private fun migrate(migration: Migration): Migration? {
+        if (!migration.name.endsWith(".sql")) {
+            throw OrmException("Invalid migration file: ${migration.name}")
         }
 
-        val name = file.name.removeSuffix(".sql")
+        val name = migration.name.removeSuffix(".sql")
 
         val result = connection.read(
             "SELECT count(*) as count FROM _migrations WHERE name = ?",
@@ -60,11 +57,11 @@ class MigrationRunner(private val connection: Connection) {
         val total = result.value("count", Int::class.java)!!
 
         if (total > 0) {
-            return false
+            return null
         }
 
         connection.transaction {
-            connection.write(file.readText())
+            connection.write(migration.content)
             connection.write(
                 "INSERT INTO _migrations VALUES (?, ?)",
                 listOf(
@@ -74,6 +71,6 @@ class MigrationRunner(private val connection: Connection) {
             )
         }
 
-        return true
+        return migration
     }
 }
