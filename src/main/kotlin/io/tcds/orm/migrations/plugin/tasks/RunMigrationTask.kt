@@ -3,9 +3,11 @@ package io.tcds.orm.migrations.plugin.tasks
 import io.tcds.orm.connection.GenericConnection
 import io.tcds.orm.connection.ResilientConnection
 import io.tcds.orm.migrations.MigrationRunner
+import io.tcds.orm.migrations.Statement
 import io.tcds.orm.migrations.modules
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
+import java.io.File
 import java.sql.DriverManager
 
 abstract class RunMigrationTask : DefaultTask() {
@@ -25,10 +27,18 @@ abstract class RunMigrationTask : DefaultTask() {
     fun run() {
         val jdbcConnection = ResilientConnection.reconnectable { DriverManager.getConnection(jdbcUrl) }
         val ormConnection = GenericConnection(jdbcConnection, jdbcConnection, null)
-        val modules = project.properties.modules()
+        val migrations = mutableListOf<Statement>()
 
-        MigrationRunner(connection = ormConnection).run(modules) { message ->
-            logger.lifecycle(message)
+        project.properties.modules().map { module ->
+            File(module.value)
+                .listFiles()
+                ?.filter { it.isFile }
+                ?.forEach { migrations.add(Statement.up(it.name, it.readText())) }
         }
+
+        MigrationRunner(connection = ormConnection)
+            .runStatements(migrations) { message ->
+                logger.lifecycle(message)
+            }
     }
 }

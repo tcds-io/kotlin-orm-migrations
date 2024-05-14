@@ -12,6 +12,22 @@ class MigrationCreatorTest {
     private val logger: Logger = mockk(relaxed = true)
     private val log: (String) -> Unit = { message -> logger.lifecycle(message) }
 
+    private val migration = """
+        package migrations
+
+        import io.tcds.orm.migrations.Migration
+
+        @Suppress("FunctionName")
+        fun migration_2022_12_18_054810_foo_bar() = Migration(
+            up = ""${'"'}
+                # CREATE TABLE ...
+            ""${'"'}.trimIndent(),
+            down = ""${'"'}
+                # DROP TABLE ...
+            ""${'"'}.trimIndent(),
+        )
+    """.trimIndent()
+
     @Test
     fun `given the properties when directory is missing then throw an exception`() = freezeClock {
         val props = emptyMap<String, Any>()
@@ -44,8 +60,8 @@ class MigrationCreatorTest {
         verify(exactly = 1) {
             writer.write(
                 "migration/folder",
-                "2022_12_18_054852_foo_bar.sql",
-                "# CREATE TABLE ...",
+                "migration_2022_12_18_054810_foo_bar.kt",
+                migration
             )
         }
     }
@@ -82,10 +98,10 @@ class MigrationCreatorTest {
         verify(exactly = 1) {
             writer.write(
                 "sales/migration/folder",
-                "2022_12_18_054852_foo_bar.sql",
-                "# CREATE TABLE ...",
+                "migration_2022_12_18_054810_foo_bar.kt",
+                migration
             )
         }
-        verify(exactly = 1) { logger.lifecycle("Migration `sales/migration/folder/2022_12_18_054852_foo_bar.sql` created.") }
+        verify(exactly = 1) { logger.lifecycle("Migration `sales/migration/folder/migration_2022_12_18_054810_foo_bar.kt` created.") }
     }
 }

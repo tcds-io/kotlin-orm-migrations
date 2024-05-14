@@ -1,4 +1,0 @@
-CREATE TABLE bar
-(
-    `id` VARCHAR(36) PRIMARY KEY
-);

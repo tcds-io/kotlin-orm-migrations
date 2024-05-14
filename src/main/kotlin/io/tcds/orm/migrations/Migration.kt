@@ -1,6 +1,8 @@
 package io.tcds.orm.migrations
 
+import org.intellij.lang.annotations.Language
+
 data class Migration(
-    val name: String,
-    val content: String,
+    @Language("SQL") val up: String,
+    @Language("SQL") val down: String,
 )

@@ -43,10 +43,25 @@ class MigrationCreator(private val writer: Writer) {
         val migration: String = name.replace(pattern, "_$0").toLowerCase()
         val now = LocalDateTime.now()
         val format = DateTimeFormatter.ofPattern("yyyy_MM_dd_HHmmss")
-        val filename = "${now.format(format)}_$migration"
+        val function = "migration_${now.format(format)}_$migration"
+        val quotes = "\"\"\""
 
-        writer.write(directory, "$filename.sql", "# CREATE TABLE ...")
+        writer.write(directory, "$function.kt", """
+            package migrations
 
-        return "$directory/$filename.sql"
+            import io.tcds.orm.migrations.Migration
+
+            @Suppress("FunctionName")
+            fun $function() = Migration(
+                up = $quotes
+                    # CREATE TABLE ...
+                $quotes.trimIndent(),
+                down = $quotes
+                    # DROP TABLE ...
+                $quotes.trimIndent(),
+            )
+        """.trimIndent())
+
+        return "$directory/$function.kt"
     }
 }

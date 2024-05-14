@@ -1,27 +1,24 @@
 package io.tcds.orm.migrations
 
-import io.tcds.orm.OrmException
 import io.tcds.orm.connection.Connection
 import io.tcds.orm.param.DateTimeParam
 import io.tcds.orm.param.StringParam
-import java.io.File
 import java.time.LocalDateTime
+import kotlin.reflect.KFunction
 
 class MigrationRunner(private val connection: Connection) {
-    fun run(modules: Map<String, String>, log: (String) -> Unit) {
-        val migrations = mutableListOf<Migration>()
-
-        modules.map { module ->
-            File(module.value)
-                .listFiles()
-                ?.filter { it.isFile }
-                ?.forEach { migrations.add(Migration(it.name, it.readText())) }
+    fun runMigrations(migrations: List<KFunction<Migration>>, log: (String) -> Unit) {
+        val statements = migrations.map { fn ->
+            Statement.up(
+                name = fn.name,
+                statement = fn.call().up,
+            )
         }
 
-        run(migrations, log)
+        runStatements(statements, log)
     }
 
-    fun run(migrations: List<Migration>, log: (String) -> Unit) {
+    fun runStatements(migrations: List<Statement>, log: (String) -> Unit) {
         createMigrationTableIfNeeded()
 
         log("Running migrations...")
@@ -35,23 +32,18 @@ class MigrationRunner(private val connection: Connection) {
         connection.write(
             """
              CREATE TABLE IF NOT EXISTS `_migrations` (
-                 `name`        VARCHAR(255) PRIMARY KEY,
+                 `name`        VARCHAR(255),
+                 `type`        VARCHAR(10),
                  `executed_at` DATETIME(6)  NOT NULL
              );
         """.trimIndent(),
         )
     }
 
-    private fun migrate(migration: Migration): Migration? {
-        if (!migration.name.endsWith(".sql")) {
-            throw OrmException("Invalid migration file: ${migration.name}")
-        }
-
-        val name = migration.name.removeSuffix(".sql")
-
+    private fun migrate(migration: Statement): Statement? {
         val result = connection.read(
             "SELECT count(*) as count FROM _migrations WHERE name = ?",
-            listOf(StringParam("name", name)),
+            listOf(StringParam("name", migration.name)),
         ).first()
 
         val total = result.value("count", Int::class.java)!!
@@ -61,11 +53,12 @@ class MigrationRunner(private val connection: Connection) {
         }
 
         connection.transaction {
-            connection.write(migration.content)
+            connection.write(migration.statement)
             connection.write(
-                "INSERT INTO _migrations VALUES (?, ?)",
+                "INSERT INTO _migrations VALUES (?, ?, ?)",
                 listOf(
-                    StringParam("name", name),
+                    StringParam("name", migration.name),
+                    StringParam("type", migration.type.name),
                     DateTimeParam("executed_at", LocalDateTime.now()),
                 ),
             )
