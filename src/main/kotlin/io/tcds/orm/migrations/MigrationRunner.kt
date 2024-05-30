@@ -54,18 +54,16 @@ class MigrationRunner(private val connection: Connection) {
     }
 
     private fun migrate(migration: Statement): Statement {
-        connection.transaction {
-            connection.write(migration.statement)
-            connection.write(
-                "INSERT INTO _migrations VALUES (?, ?, ?, ?)",
-                listOf(
-                    StringParam("name", migration.name),
-                    StringParam("type", migration.type.name),
-                    IntegerParam("reverted", 0),
-                    DateTimeParam("executed_at", LocalDateTime.now()),
-                ),
-            )
-        }
+        connection.write(migration.statement)
+        connection.write(
+            "INSERT INTO _migrations VALUES (?, ?, ?, ?)",
+            listOf(
+                StringParam("name", migration.name),
+                StringParam("type", migration.type.name),
+                IntegerParam("reverted", 0),
+                DateTimeParam("executed_at", LocalDateTime.now()),
+            ),
+        )
 
         return migration
     }
