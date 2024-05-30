@@ -1,7 +1,8 @@
 package io.tcds.orm.migrations
 
 import io.tcds.orm.connection.Connection
-import io.tcds.orm.param.DateTimeParam
+import io.tcds.orm.extension.toInstant
+import io.tcds.orm.param.InstantParam
 import io.tcds.orm.param.IntegerParam
 import io.tcds.orm.param.StringParam
 import java.time.LocalDateTime
@@ -61,7 +62,7 @@ class MigrationRunner(private val connection: Connection) {
                 StringParam("name", migration.name),
                 StringParam("type", migration.type.name),
                 IntegerParam("reverted", 0),
-                DateTimeParam("executed_at", LocalDateTime.now()),
+                InstantParam("executed_at", LocalDateTime.now().toInstant()),
             ),
         )
 
