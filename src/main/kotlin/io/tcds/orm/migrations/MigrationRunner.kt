@@ -1,10 +1,9 @@
 package io.tcds.orm.migrations
 
 import io.tcds.orm.connection.Connection
+import io.tcds.orm.connection.NestedTransactionConnection
+import io.tcds.orm.extension.param
 import io.tcds.orm.extension.toInstant
-import io.tcds.orm.param.InstantParam
-import io.tcds.orm.param.IntegerParam
-import io.tcds.orm.param.StringParam
 import java.time.LocalDateTime
 import kotlin.reflect.KFunction
 
@@ -21,6 +20,7 @@ class MigrationRunner(private val connection: Connection) {
     }
 
     fun runStatements(migrations: List<Statement>, log: (String) -> Unit) {
+        createSchemaIfNeeded()
         createMigrationTableIfNeeded()
         val migrated = loadPreviousMigrations()
 
@@ -34,6 +34,12 @@ class MigrationRunner(private val connection: Connection) {
         log("Done.")
     }
 
+    private fun createSchemaIfNeeded() {
+        when (connection) {
+            is NestedTransactionConnection -> connection.write("CREATE SCHEMA IF NOT EXISTS ${connection.writer.schema}")
+        }
+    }
+
     private fun createMigrationTableIfNeeded() {
         connection.write(
             """
@@ -43,7 +49,7 @@ class MigrationRunner(private val connection: Connection) {
                  `reverted`    TINYINT NOT NULL DEFAULT 0,
                  `executed_at` DATETIME(6)  NOT NULL
              );
-        """.trimIndent(),
+            """.trimIndent(),
         )
     }
 
@@ -59,10 +65,10 @@ class MigrationRunner(private val connection: Connection) {
         connection.write(
             "INSERT INTO _migrations VALUES (?, ?, ?, ?)",
             listOf(
-                StringParam("name", migration.name),
-                StringParam("type", migration.type.name),
-                IntegerParam("reverted", 0),
-                InstantParam("executed_at", LocalDateTime.now().toInstant()),
+                param(migration.name),
+                param(migration.type.name),
+                param(0),
+                param(LocalDateTime.now().toInstant()),
             ),
         )
 

@@ -46,21 +46,25 @@ class MigrationCreator(private val writer: Writer) {
         val function = "migration_${now.format(format)}_$migration"
         val quotes = "\"\"\""
 
-        writer.write(directory, "$function.kt", """
-            package migrations
+        writer.write(
+            directory,
+            "$function.kt",
+            """
+                package migrations
 
-            import io.tcds.orm.migrations.Migration
+                import io.tcds.orm.migrations.Migration
 
-            @Suppress("FunctionName")
-            fun $function() = Migration(
-                up = $quotes
-                    # CREATE TABLE ...
-                $quotes.trimIndent(),
-                down = $quotes
-                    # DROP TABLE ...
-                $quotes.trimIndent(),
-            )
-        """.trimIndent())
+                @Suppress("FunctionName")
+                fun $function() = Migration(
+                    up = $quotes
+                        # CREATE TABLE ...
+                    $quotes.trimIndent(),
+                    down = $quotes
+                        # DROP TABLE ...
+                    $quotes.trimIndent(),
+                )
+            """.trimIndent(),
+        )
 
         return "$directory/$function.kt"
     }
