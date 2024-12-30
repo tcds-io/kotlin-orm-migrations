@@ -35,8 +35,10 @@ class MigrationRunner(private val connection: Connection) {
     }
 
     private fun createSchemaIfNeeded() {
+        val database = connection.writer.schema ?: connection.writer.catalog
+
         when (connection) {
-            is NestedTransactionConnection -> connection.write("CREATE SCHEMA IF NOT EXISTS ${connection.writer.schema}")
+            is NestedTransactionConnection -> connection.write("CREATE SCHEMA IF NOT EXISTS $database")
         }
     }
 
